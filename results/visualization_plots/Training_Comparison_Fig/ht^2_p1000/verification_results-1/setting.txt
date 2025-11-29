@@ -1,0 +1,4 @@
+t_min = 5e-3
+t_max = 40
+lr = 0.004
+max_eigenvalue_U = 224
