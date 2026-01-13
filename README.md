@@ -36,6 +36,7 @@ random_feature_diffusion-main/
 └── results/                     # Experimental outputs
     ├── generated_samples/       # Final PNGs (300 DPI)
     └── snapshots/               # SDE trajectory snapshots
+```
 
 ## 4. Methodological Details
 *Gradient Flow Equilibrium*
@@ -45,3 +46,12 @@ $$ A(\infty) = \sum_{i} \dots $$
 We verify two types of parameterizations for the score function:
 1. Posterior Mean: $\hat{x}_0(x_t) = \mathbb{E}[x_0 | x_t]$
 2. Direct Score: $s_\theta(x_t, t) \approx \nabla_{x_t} \log p_t(x_t)$
+
+Configuration
+All hyperparameters are centralized in config.py. Key parameters for the ICML experiments include:
+* NUM_MODES: Complexity of the target distribution (e.g., 4.5 for mixed geometry).
+* p: Number of random features (Default: 10000).
+* TIME_SCHEDULE: Beta schedule (exponential recommended for high-precision sampling).
+
+Author: Yitong Qiu | USTC
+Last Update: Jan 2026
