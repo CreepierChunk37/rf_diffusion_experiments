@@ -12,9 +12,6 @@ Unlike standard neural network approximations, we explore the **Gradient Flow eq
 - The impact of data dimensionality and random feature scaling ($p \to \infty$) on generation quality.
 - etc.
 
-![Representative Result](results/visualization_plots/final_samples_example.png)
-*(Fig 1. Generated samples tracking the evolution of the SDE from noise to target distribution.)*
-
 ## 2. Key Contributions & Features
 * **Theoretical Implementation:** Implements the closed-form steady-state solution $A(\infty)$ for gradient flow using eigendecomposition.
 * **Dual Approaches:**
@@ -39,3 +36,12 @@ random_feature_diffusion-main/
 └── results/                     # Experimental outputs
     ├── generated_samples/       # Final PNGs (300 DPI)
     └── snapshots/               # SDE trajectory snapshots
+
+## 4. Methodological Details
+*Gradient Flow Equilibrium*
+We compute the limit of the gradient flow $A(\infty)$ explicitly. The core computation involves the eigendecomposition of the kernel matrix $K$:
+$$ A(\infty) = \sum_{i} \dots $$
+*Score Parametrization*
+We verify two types of parameterizations for the score function:
+1. Posterior Mean: $\hat{x}_0(x_t) = \mathbb{E}[x_0 | x_t]$
+2. Direct Score: $s_\theta(x_t, t) \approx \nabla_{x_t} \log p_t(x_t)$
