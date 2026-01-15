@@ -1,57 +1,89 @@
 # Research: Random Feature Diffusion Models
 
-> **Note:** This repository contains the **research code** and experimental logs for the project: Quantifying the generalization of diffusion
-models: generation implicit bias made explicit. It targets a submission to **ICML 2026**.
+> **Note:** This repository contains the **research code** and experimental logs for the project: **Quantifying the generalization of diffusion models: generation implicit bias made explicit**.
+> It targets a submission to **ICML 2026**.
 
 ## 1. Project Overview
-This project investigates the theoretical and empirical properties of **Random Feature (RF)** methods applied to **Score-based Generative Modeling**. 
 
-Unlike standard neural network approximations, we explore the **Gradient Flow equilibrium** of random feature models in the diffusion setting. We specifically analyze:
-- The convergence behavior of RF-based score estimators.
-- The comparative performance between **Posterior Mean Parametrization** and **Direct Score Parametrization**.
-- The impact of data dimensionality and random feature scaling ($p \to \infty$) on generation quality.
-- etc.
+This project investigates the theoretical and empirical properties of **Random Feature (RF)** methods applied to **Score-based Generative Modeling**.
 
-## 2. Key Contributions & Features
-* **Theoretical Implementation:** Implements the closed-form steady-state solution $A(\infty)$ for gradient flow using eigendecomposition.
-* **Dual Approaches:**
-    * **Gradient Flow Approach:** Leveraging equilibrium analysis (implemented in `main_test.py`).
-    * **Score-based Approach:** Direct estimation of the score function $\nabla \log p_t(x)$ (implemented in `main_score.py`).
-* **Flexible Configurations:** Support for various Dirac mode configurations (1-9 modes), time schedules (Linear/Cosine/Exponential), and sampling strategies.
+Our core objective is to quantify the generalization capability of diffusion models. We move beyond standard loss metrics by defining a theoretical "Ridge" manifold, allowing us to explicitly analyze how generated samples deviate from the true data support in terms of normal and tangent components.
+
+## 2. Key Contributions
+
+### Part I: RF Dynamics & Equilibrium (Training)
+
+* **Theoretical Implementation:** Implements the closed-form steady-state solution  for gradient flow using eigendecomposition.
+* **Dual Parameterizations:** Compares **Posterior Mean Parametrization** vs. **Direct Score Parametrization** in the random feature regime.
+
+### Part II: Generalization & Manifold Analysis (Sampling)
+
+* **Ridge Manifold Definition:** We formally define the data manifold  using the properties of the score function and Hessian eigenvalues:
+
+
+* **Error Decomposition Theory:** Based on the Ridge definition, we derived the theoretical error bounds for generated samples, explicitly decomposing the error into **normal (off-manifold)** and **tangent (on-manifold)** directions relative to the trained model's approximation error.
+* **Empirical Verification:**
+* **Toy Datasets:** Direct numerical calculation of normal/tangent errors, confirming consistency with theoretical predictions.
+* **MNIST:** Utilization of **Level Sets** to characterize and visualize the distance from generated samples to the high-dimensional manifold.
+
+
 
 ## 3. Project Structure
-The repository is organized to separate core logic from experimental logs.
+
+The repository is organized to separate core logic, manifold analysis, and experimental logs.
 
 ```text
 random_feature_diffusion-main/
-├── README.md                    # Project documentation
-├── config.py                    # Hyperparameter configurations
-├── main_test.py                 # Experiment: Gradient Flow Equilibrium
-├── main_score.py                # Experiment: Direct Score Matching
-├── src/                         # Core functional modules
-│   ├── gradient_flow.py         # Eigen-decomposition & A(inf) computation
-│   ├── sde_simulation.py        # Reverse-time SDE solvers
-│   ├── schedules.py             # Variance schedules (beta_t)
-│   └── data_generation.py       # Gaussian mixture / Dirac mode samplers
-└── results/                     # Experimental outputs
-    ├── generated_samples/       # Final PNGs (300 DPI)
-    └── snapshots/               # SDE trajectory snapshots
+├── README.md                  # Project documentation
+├── config.py                  # Hyperparameter configurations
+├── main_test.py               # Experiment: Gradient Flow Equilibrium
+├── main_score.py              # Experiment: Direct Score Matching
+├── src/                       # Core functional modules
+│   ├── gradient_flow.py       # Eigen-decomposition & A(inf) computation
+│   └── ...                    # SDE solvers, schedules, etc.
+├── Sampling_Quantifying/      # [Ongoing] Error decomposition & Manifold analysis
+├── MNIST/                     # [Ongoing] MNIST Level Set experiments
+└── other                  # Experimental outputs (will not use in the final paper)
+
 ```
 
 ## 4. Methodological Details
-*Gradient Flow Equilibrium*
-We compute the limit of the gradient flow $A(\infty)$ explicitly. The core computation involves the eigendecomposition of the kernel matrix $K$:
-$$ A(\infty) = \sum_{i} \dots $$
-*Score Parametrization*
-We verify two types of parameterizations for the score function:
-1. Posterior Mean: $\hat{x}_0(x_t) = \mathbb{E}[x_0 | x_t]$
-2. Direct Score: $s_\theta(x_t, t) \approx \nabla_{x_t} \log p_t(x_t)$
 
-Configuration
-All hyperparameters are centralized in config.py. Key parameters for the ICML experiments include:
-* NUM_MODES: Complexity of the target distribution (e.g., 4.5 for mixed geometry).
-* p: Number of random features (Default: 10000).
-* TIME_SCHEDULE: Beta schedule (exponential recommended for high-precision sampling).
+### 4.1 Gradient Flow Equilibrium
 
-Author: Yitong Qiu | USTC
-Last Update: Jan 2026
+We compute the limit of the gradient flow  explicitly via eigendecomposition of the kernel matrix , analyzing the convergence of the RF-based score estimator.
+
+### 4.2 Manifold Analysis & Error Decomposition
+
+To measure generalization, we utilize the **Ridge** definition to define the target manifold .
+
+**Theoretical Insight:**
+We derive that for a sample  near , the generation error can be decomposed. The error in the **normal direction** (orthogonal to the manifold) is tightly controlled by the score matching error, while the error in the **tangent direction** represents movement along the data support.
+
+**Experimental Validation:**
+
+1. **Toy Datasets (`Sampling_Quantifying/`):**
+* For low-dimensional data, we explicitly compute the manifold .
+* We calculate the exact projection of generated samples onto , separating the error vectors into normal and tangent components.
+* **Result:** The computed errors align with our theoretical derivation regarding the score estimation error.
+
+
+2. **MNIST (`MNIST/`):**
+* Due to the intractability of the exact manifold in high dimensions, we employ **Level Set** analysis.
+* We analyze the distribution of samples across different level sets of the learned score/energy function.
+* **Result:** The level sets effectively reflect the distance to the manifold, acting as a proxy to validate the implicit bias of the generation process.
+
+
+
+## 5. Configuration
+
+All hyperparameters are centralized in `config.py`.
+
+* **Ridge Parameters:** `MANIFOLD_BETA` (Curvature threshold).
+* **Model Parameters:** `p` (Random features), `NUM_MODES`.
+* **Experiment Switches:** Flags to toggle between Toy Set error calculation and MNIST level set visualization.
+
+---
+
+**Author:** Yitong Qiu | USTC
+**Last Update:** Jan 2026
